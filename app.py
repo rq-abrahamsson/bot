@@ -1,5 +1,6 @@
 import os
 import time
+import json
 from slackclient import SlackClient
 #from flask import Flask
 
@@ -10,6 +11,8 @@ EXAMPLE_COMMAND = "do"
 ADD_COMMAND = "add"
 
 slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
+
+
 
 #app = Flask(__name__)
 
@@ -27,8 +30,9 @@ def handle_command(command, channel):
         else:
             response = "Sure...write some more code then I can do that!"
     elif command.startswith(ADD_COMMAND):
-        if "competence" in command:
-            response = "Adding competence."
+        words = command.split()
+        if "competence" in command and len(words) > words.index("competence") + 1:
+            response = "Adding competence:" + words[words.index("competence")+1]
         else:
             response = "Adding something"
     slack_client.api_call("chat.postMessage", channel=channel,

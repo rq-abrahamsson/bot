@@ -1,0 +1,22 @@
+{
+    "users": [
+        {
+            "id": 1,
+            "name": "Test",
+            "level": 6,
+            "competence": []
+        },
+        {
+            "id": 2,
+            "name": "Lance",
+            "level": 3,
+            "competence": []
+        },
+        {
+            "id": 3,
+            "name": "Aki",
+            "level": 0,
+            "competence": []
+        }
+    ]
+}
