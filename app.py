@@ -12,8 +12,28 @@ ADD_COMMAND = "add"
 
 slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 
+class User(object):
+    def __init__(self, name, competence, level, _id):
+        self.name = name
+        self.competence = competence
+        self.level = level
+        self._id = id
 
+def object_decoder(obj):
+    if 'users' in obj:
+        array = []
+        for user in obj['users']:
+            array.append(object_decoder(user))
+        return array
+    if '__type__' in obj and obj['__type__'] == 'User':
+        return User(obj['name'], obj['competence'], obj['level'], obj['_id'])
+    return obj
 
+with open('db.json', 'rw') as json_data:
+#    db = json.load(json_data, object_hook=object_decoder)
+    db = json.load(json_data)
+    print(db)
+print(db['users'][0])
 #app = Flask(__name__)
 
 def handle_command(command, channel):
@@ -33,8 +53,11 @@ def handle_command(command, channel):
         words = command.split()
         if "competence" in command and len(words) > words.index("competence") + 1:
             response = "Adding competence:" + words[words.index("competence")+1]
+            db['users'][0]['competence'].append(words[words.index("competence") + 1])
         else:
             response = "Adding something"
+    with open('db.json', 'w') as outfile:
+        json.dump(db, outfile)
     slack_client.api_call("chat.postMessage", channel=channel,
                           text=response, as_user=True)
 
