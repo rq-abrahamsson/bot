@@ -1,10 +1,16 @@
+# -*- coding: utf-8 -*-
+
 import os
+import sys
 import time
 import json
 from slackclient import SlackClient
 #from flask import Flask
 
-BOT_NAME = 'talking'
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
+BOT_NAME = 'alex'
 BOT_ID = os.environ.get("BOT_ID")
 AT_BOT = "<@" + BOT_ID + ">"
 EXAMPLE_COMMAND = "do"
@@ -16,24 +22,20 @@ START_COMMAND = "start"
 
 #ux_words = ['UX', 'user experience', 'customer journey', 'customer jurney', 'usability']
 
-general_questions = ['Hi! I am interview bot, why are you the best programmer?'
-                     ,'What is your mail address?'
-                     ,'What is your name?'
-                     ,'What project that you have been a part of was the most fun?'
-                     ,'What was your role in that project?'
+general_questions = ['Hej! Mitt namn är Alex, jag är Valtechs nya assistent :) Vad kul att du är intresserad av att jobba hos oss! Innan vi kan gå vidare med din ansökan behöver jag veta vad du heter? :)'
+                     ,'Hej! Skulle du kunna berätta lite mer om dig själv? Vad driver dig som person?'
+                     ,'Cool. Du söker jobbet som systemutvecklare/Lead, kul! Hur trivs du som ledare i en grupp? Ge gärna ett exempel på när du har tagit en ledarroll :)'
+                     ,'Låter spännande! Skulle du säga att du trivs bäst med att jobba i grupp eller på egen hand?'
                      ]
 
-specific_questions = {'.net': 'What about .net?'
-                      ,'java': 'What about java?'
-                      ,'php': 'What about php?'}
-
-#developer_questions = ['What is the programming language you are best at and what do you like most about it?'
-#                       ,'Something'
-#                       ,'Do you have any private projects?']
-
-#ux_questions = ['A question about UX'
-#                ,'Another question abuot UX'
-#                ,'A third one']
+specific_questions = {
+    '.net': '.Net, grymt! Precis vad vi söker.\nKan du berätta om ett project du är stolt över, där du använt .Net?'
+    ,'i grupp': 'Perfekt! På Valtech jobbar vi mycket i grupper, det är därför viktigt att våra medarbetare kan jobba tillsammans. Hur ser din erfarenhet ut inom systemutveckling? Har du några språk eller ramverk du görna jobbar med?'
+    ,'på egen hand': 'Vad tråkigt då kan du inte få jobb här!'
+    ,'java': 'Java, grymt! Precis vad vi söker.\nKan du berätta om ett project du är stolt över, där du använt Java?'
+    ,'php': 'PHP, dåligt! Det vill vi inte ha!'
+    ,'javascript': 'JavaScript, grymt! Precis vad vi söker.\nKan du berätta om ett project du är stolt över, där du använt JavaScript? Vad använde du för ramverk.'
+    }
 
 question_number = 0
 
@@ -41,6 +43,7 @@ question_types = ""
 
 db =[]
 attributes = []
+used_attributes = []
 
 slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 
@@ -53,28 +56,27 @@ def handle_command(command, channel):
     global question_number
     global role
     global question_types
-
     print question_number
     response = "There might have been some error in my brain processing..."
-    if command.startswith(START_COMMAND) or command.startswith('hej') or question_number==0:
+    if question_number==0:
         response = general_questions[0]
         question_number += 1
     elif command.startswith(SEND_COMMAND):
         response = "Sending application"
     else:
         for word in specific_questions.keys():
-            if word in command:
+            if word in command and not word in used_attributes:
                 attributes.append(word)
         if question_number > len(general_questions):
             question_types = 'specific'
         if question_types == '':
             db.append((general_questions[question_number-1],command))
-            print db
             if question_number >= len(general_questions):
                 if not attributes:
                     response = "We have no more questions, write send to submit."
                 else:
                     e = attributes.pop()
+                    used_attributes.append(e)
                     response = specific_questions[e]
             else:
                 response = general_questions[question_number]
@@ -83,6 +85,7 @@ def handle_command(command, channel):
                 response = "We have no more questions, write send to submit."
             else:
                 e = attributes.pop()
+                used_attributes.append(e)
                 response = specific_questions[e]
 
         question_number+=1
@@ -93,26 +96,11 @@ def handle_command(command, channel):
                           text=response, as_user=True)
 
 
-def parse_slack_output(slack_rtm_output):
-    """
-        The Slack Real Time Messaging API is an events firehose.
-        this parsing function returns None unless a message is
-        directed at the Bot, based on its ID.
-    """
-    output_list = slack_rtm_output
-    if output_list and len(output_list) > 0:
-        for output in output_list:
-            if output and 'text' in output and AT_BOT in output['text']:
-                # return text after the @ mention, whitespace removed
-                return output['text'].split(AT_BOT)[1].strip().lower(), \
-                       output['channel']
-    return None, None
-
 def parse_slack_output_not_at(slack_rtm_output):
     output_list = slack_rtm_output
     if output_list and len(output_list) > 0:
         for output in output_list:
-            if output and 'text' in output:
+            if output and 'text' in output and output['user'] != BOT_ID:
                 # return text after the @ mention, whitespace removed
                 return output['text'].lower(), output['channel']
     return None, None
