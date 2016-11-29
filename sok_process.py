@@ -10,7 +10,7 @@ from slackclient import SlackClient
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-BOT_NAME = 'alex'
+BOT_NAME = 'kim'
 BOT_ID = os.environ.get("BOT_ID")
 AT_BOT = "<@" + BOT_ID + ">"
 EXAMPLE_COMMAND = "do"
@@ -18,7 +18,7 @@ SEND_COMMAND = "send"
 RESET_COMMAND = "reset"
 START_COMMAND = "start"
 
-general_questions = ['Hej! Mitt namn är Alex, jag är Valtechs nya assistent :) Vad kul att du är intresserad av att jobba hos oss! Innan vi kan gå vidare med din ansökan behöver jag veta vad du heter? :)'
+general_questions = ['Hej! Mitt namn är ' + BOT_NAME + ', jag är Valtechs nya assistent :) Vad kul att du är intresserad av att jobba hos oss! Innan vi kan gå vidare med din ansökan behöver jag veta vad du heter? :)'
                      ,'Hej! Skulle du kunna berätta lite mer om dig själv? Vad driver dig som person?'
                      ,'Cool. Du söker jobbet som systemutvecklare/Lead, kul! Hur trivs du som ledare i en grupp? Ge gärna ett exempel på när du har tagit en ledarroll :)'
                      ,'Låter spännande! Skulle du säga att du trivs bäst med att jobba i grupp eller på egen hand?'
