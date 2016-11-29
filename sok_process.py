@@ -79,7 +79,6 @@ def handle_command(command, channel):
             else:
                 response = general_questions[question_number]
         elif question_types == 'specific':
-            e = attributes.pop()
             if not attributes:
                 response = "We have no more questions, write send to submit."
             else:
