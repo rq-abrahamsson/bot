@@ -15,12 +15,8 @@ BOT_ID = os.environ.get("BOT_ID")
 AT_BOT = "<@" + BOT_ID + ">"
 EXAMPLE_COMMAND = "do"
 SEND_COMMAND = "send"
+RESET_COMMAND = "reset"
 START_COMMAND = "start"
-
-
-#developer_words = ['.net', 'dotnet', 'c#', 'see sharp', 'java', 'php', 'c++', 'python', 'clojure', 'elm', 'haskell', 'F#', 'bash', 'linux', 'ada', 'perl', 'prorgamming', 'objective-c', 'swift', 'ruby', 'JavaScript']
-
-#ux_words = ['UX', 'user experience', 'customer journey', 'customer jurney', 'usability']
 
 general_questions = ['Hej! Mitt namn är Alex, jag är Valtechs nya assistent :) Vad kul att du är intresserad av att jobba hos oss! Innan vi kan gå vidare med din ansökan behöver jag veta vad du heter? :)'
                      ,'Hej! Skulle du kunna berätta lite mer om dig själv? Vad driver dig som person?'
@@ -38,14 +34,25 @@ specific_questions = {
     }
 
 question_number = 0
-
+attributes = []
+db = []
+used_attributes = []
 question_types = ""
 
-db =[]
-attributes = []
-used_attributes = []
-
 slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
+
+def reset():
+    global question_number
+    global attributes
+    global db
+    global used_attributes
+    global question_types
+    question_number = 0
+    attributes = []
+    db = []
+    used_attributes = []
+    question_types = ""
+
 
 def handle_command(command, channel):
     """
@@ -56,11 +63,15 @@ def handle_command(command, channel):
     global question_number
     global role
     global question_types
-    print question_number
     response = "There might have been some error in my brain processing..."
     if question_number==0:
         response = general_questions[0]
         question_number += 1
+    elif command.startswith("reset"):
+        reset()
+        response = "Restarted"
+    elif command.startswith("help"):
+        response = "reset: Restart, send: Send application, help: Show this help text."
     elif command.startswith(SEND_COMMAND):
         response = "Sending application"
     else:
@@ -73,7 +84,7 @@ def handle_command(command, channel):
             db.append((general_questions[question_number-1],command))
             if question_number >= len(general_questions):
                 if not attributes:
-                    response = "We have no more questions, write send to submit."
+                    response = "Vi har inga fler frågor, skriv 'send' för att skicka ansökan."
                 else:
                     e = attributes.pop()
                     used_attributes.append(e)
