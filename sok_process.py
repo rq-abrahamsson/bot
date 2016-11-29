@@ -18,20 +18,30 @@ SEND_COMMAND = "send"
 RESET_COMMAND = "reset"
 START_COMMAND = "start"
 
-general_questions = ['Hej! Mitt namn är ' + BOT_NAME + ', jag är Valtechs nya assistent :) Vad kul att du är intresserad av att jobba hos oss! Innan vi kan gå vidare med din ansökan behöver jag veta vad du heter? :)'
-                     ,'Hej! Skulle du kunna berätta lite mer om dig själv? Vad driver dig som person?'
-                     ,'Cool. Du söker jobbet som systemutvecklare/Lead, kul! Hur trivs du som ledare i en grupp? Ge gärna ett exempel på när du har tagit en ledarroll :)'
-                     ,'Låter spännande! Skulle du säga att du trivs bäst med att jobba i grupp eller på egen hand?'
-                     ]
+general_questions = [
+    'Hej! Mitt namn är ' + BOT_NAME +
+    ', jag är Valtechs nya assistent :) Vad kul att du är intresserad av att jobba hos oss! Innan vi kan gå vidare med din ansökan behöver jag veta vad du heter? :)',
+    'Hej! Skulle du kunna berätta lite mer om dig själv? Vad driver dig som person?',
+    'Cool. Du söker jobbet som systemutvecklare/Lead, kul! Hur trivs du som ledare i en grupp? Ge gärna ett exempel på när du har tagit en ledarroll :)',
+    'Låter spännande! Skulle du säga att du trivs bäst med att jobba i grupp eller på egen hand?'
+]
 
 specific_questions = {
-    '.net': '.Net, grymt! Precis vad vi söker.\nKan du berätta om ett project du är stolt över, där du använt .Net?'
-    ,'i grupp': 'Perfekt! På Valtech jobbar vi mycket i grupper, det är därför viktigt att våra medarbetare kan jobba tillsammans. Hur ser din erfarenhet ut inom systemutveckling? Har du några språk eller ramverk du görna jobbar med?'
-    ,'på egen hand': 'Vad tråkigt då kan du inte få jobb här!'
-    ,'java': 'Java, grymt! Precis vad vi söker.\nKan du berätta om ett project du är stolt över, där du använt Java?'
-    ,'php': 'PHP, dåligt! Det vill vi inte ha!'
-    ,'javascript': 'JavaScript, grymt! Precis vad vi söker.\nKan du berätta om ett project du är stolt över, där du använt JavaScript? Vad använde du för ramverk.'
-    }
+    'frontend': 'Du nämnde frontend, vad har du arbetat med inom det området?',
+    'backend': 'Du nämnde backend, vad har du arbetat med inom det området?',
+    '.net':
+    '.Net, grymt! Precis vad vi söker.\nKan du berätta om ett projekt du är stolt över, där du använt .Net?',
+    'i grupp':
+    'Perfekt! På Valtech jobbar vi mycket i grupper, det är därför viktigt att våra medarbetare kan jobba tillsammans. Hur ser din erfarenhet ut inom systemutveckling? Har du några språk eller ramverk du görna jobbar med?',
+    'på egen hand': 'Vad tråkigt då kan du inte få jobb här!',
+    'java':
+    'Kul att du kan Java! Det har vi verkligen nytta av.\nHar du något projekt du är särskilt stolt över, där du använt Java?',
+    'php': 'PHP, dåligt! Det vill vi inte ha!',
+    'javascript':
+    'JavaScript, grymt! Precis vad vi söker.\nKan du berätta om ett projekt du är stolt över, där du använt JavaScript? Vad använde du för ramverk.',
+    'ux':
+    'Just UX blir kanske inte så relevant för denna roll\n, men det finns andra spännande tjänster att söka!'
+}
 
 question_number = 0
 attributes = []
@@ -40,6 +50,7 @@ used_attributes = []
 question_types = ""
 
 slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
+
 
 def reset():
     global question_number
@@ -64,7 +75,7 @@ def handle_command(command, channel):
     global role
     global question_types
     response = "There might have been some error in my brain processing..."
-    if question_number==0:
+    if question_number == 0:
         response = general_questions[0]
         question_number += 1
     elif command.startswith("reset"):
@@ -81,7 +92,7 @@ def handle_command(command, channel):
         if question_number > len(general_questions):
             question_types = 'specific'
         if question_types == '':
-            db.append((general_questions[question_number-1],command))
+            db.append((general_questions[question_number - 1], command))
             if question_number >= len(general_questions):
                 if not attributes:
                     response = "Vi har inga fler frågor, skriv 'send' för att skicka ansökan."
@@ -99,12 +110,12 @@ def handle_command(command, channel):
                 used_attributes.append(e)
                 response = specific_questions[e]
 
-        question_number+=1
+        question_number += 1
 
     with open('db_sok.json', 'w') as outfile:
         json.dump(db, outfile)
-    slack_client.api_call("chat.postMessage", channel=channel,
-                          text=response, as_user=True)
+    slack_client.api_call(
+        "chat.postMessage", channel=channel, text=response, as_user=True)
 
 
 def parse_slack_output_not_at(slack_rtm_output):
@@ -115,6 +126,7 @@ def parse_slack_output_not_at(slack_rtm_output):
                 # return text after the @ mention, whitespace removed
                 return output['text'].lower(), output['channel']
     return None, None
+
 
 def get_bot_id():
     api_call = slack_client.api_call("users.list")
@@ -129,8 +141,9 @@ def get_bot_id():
         print("could not find bot user with the name " + BOT_NAME)
         return ''
 
+
 if __name__ == "__main__":
-    READ_WEBSOCKET_DELAY = 1 # 1 second delay between reading from firehose
+    READ_WEBSOCKET_DELAY = 1  # 1 second delay between reading from firehose
     id = get_bot_id()
     if slack_client.rtm_connect():
         print("StarterBot connected and running!")
@@ -145,12 +158,9 @@ if __name__ == "__main__":
     else:
         print("Connection failed. Invalid Slack token or bot ID?")
 
-
-
 #@app.route('/')
 #def hello_world():
 #    return 'Hello, World!'
-
 
 #if __name__ == "__main__":
 #    api_call = slack_client.api_call("users.list")
