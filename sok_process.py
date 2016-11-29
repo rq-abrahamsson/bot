@@ -12,9 +12,9 @@ SEND_COMMAND = "send"
 START_COMMAND = "start"
 
 
-developer_words = ['.net', 'dotnet', 'c#', 'see sharp', 'java', 'php', 'c++', 'python', 'clojure', 'elm', 'haskell', 'F#', 'bash', 'linux', 'ada', 'perl', 'prorgamming', 'objective-c', 'swift', 'ruby', 'JavaScript']
+#developer_words = ['.net', 'dotnet', 'c#', 'see sharp', 'java', 'php', 'c++', 'python', 'clojure', 'elm', 'haskell', 'F#', 'bash', 'linux', 'ada', 'perl', 'prorgamming', 'objective-c', 'swift', 'ruby', 'JavaScript']
 
-ux_words = ['UX', 'user experience', 'customer journey', 'customer jurney', 'usability']
+#ux_words = ['UX', 'user experience', 'customer journey', 'customer jurney', 'usability']
 
 general_questions = ['Hi! I am interview bot, why are you the best programmer?'
                      ,'What is your mail address?'
@@ -23,17 +23,21 @@ general_questions = ['Hi! I am interview bot, why are you the best programmer?'
                      ,'What was your role in that project?'
                      ]
 
-developer_questions = ['What is the programming language you are best at and what do you like most about it?'
-                       ,'Something'
-                       ,'Do you have any private projects?']
+specific_questions = {'.net': 'What about .net?'
+                      ,'java': 'What about java?'
+                      ,'php': 'What about php?'}
 
-ux_questions = ['A question about UX'
-                ,'Another question abuot UX'
-                ,'A third one']
+#developer_questions = ['What is the programming language you are best at and what do you like most about it?'
+#                       ,'Something'
+#                       ,'Do you have any private projects?']
+
+#ux_questions = ['A question about UX'
+#                ,'Another question abuot UX'
+#                ,'A third one']
 
 question_number = 0
 
-role = ""
+question_types = ""
 
 db =[]
 attributes = []
@@ -48,31 +52,40 @@ def handle_command(command, channel):
     """
     global question_number
     global role
+    global question_types
+
     print question_number
-    response = "Not sure what you mean. Use the *" + EXAMPLE_COMMAND + \
-               "* command with numbers, delimited by spaces."
+    response = "There might have been some error in my brain processing..."
     if command.startswith(START_COMMAND) or command.startswith('hej') or question_number==0:
         response = general_questions[0]
         question_number += 1
     elif command.startswith(SEND_COMMAND):
         response = "Sending application"
     else:
+        for word in specific_questions.keys():
+            if word in command:
+                attributes.append(word)
         if question_number > len(general_questions):
-            #Change this
-            role = 'developer'
-        if role == '':
-            for word in developer_words:
-                if word in command:
-                    attributes.append(word)
-
+            question_types = 'specific'
+        if question_types == '':
             db.append((general_questions[question_number-1],command))
             print db
-            response = general_questions[question_number]
-        #elif role == 'developer':
-        #    response = developer_questions[question_number-len(general_questions)]
-        #    db.append((general_questions[question_number],command))
-        #else:
-        #    response = "Eh"
+            if question_number >= len(general_questions):
+                if not attributes:
+                    response = "We have no more questions, write send to submit."
+                else:
+                    e = attributes.pop()
+                    response = specific_questions[e]
+            else:
+                response = general_questions[question_number]
+        elif question_types == 'specific':
+            e = attributes.pop()
+            if not attributes:
+                response = "We have no more questions, write send to submit."
+            else:
+                e = attributes.pop()
+                response = specific_questions[e]
+
         question_number+=1
 
     with open('db_sok.json', 'w') as outfile:
