@@ -108,6 +108,15 @@ def parse_slack_output(slack_rtm_output):
                        output['channel']
     return None, None
 
+def parse_slack_output_not_at(slack_rtm_output):
+    output_list = slack_rtm_output
+    if output_list and len(output_list) > 0:
+        for output in output_list:
+            if output and 'text' in output:
+                # return text after the @ mention, whitespace removed
+                return output['text'].lower(), output['channel']
+    return None, None
+
 def get_bot_id():
     api_call = slack_client.api_call("users.list")
     if api_call.get('ok'):
@@ -129,7 +138,8 @@ if __name__ == "__main__":
         #slack_client.api_call("chat.postMessage", channel='#test',
         #                      text="Hi! Why are you the best programmer?", as_user=True)
         while True:
-            command, channel = parse_slack_output(slack_client.rtm_read())
+            message = slack_client.rtm_read()
+            command, channel = parse_slack_output_not_at(message)
             if command and channel:
                 handle_command(command, channel)
             time.sleep(READ_WEBSOCKET_DELAY)
